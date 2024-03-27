@@ -26,7 +26,7 @@ class acsincom():
         num_data = self.num_data
         
         #shuffle rows
-        data, _ = arff.loadarff('./ACSIncome/ACSIncome_state_number.arff')
+        data, _ = arff.loadarff('../dataset/ACSIncome/ACSIncome_state_number.arff')
         data = pd.DataFrame(data)
         data = data.sample(frac=1).reset_index(drop=True)
         data = data[:num_data]
