@@ -39,13 +39,9 @@ class MCLogisticRegression:
         for i in range(self.epochs):
             z = np.dot(self.x, self.w) + self.b
             y_prob = self.softmax(z)
-            # One-hot encoding of y
             y_one_hot = np.eye(self.n_classes)[self.y]
             error = y_prob - y_one_hot
             dev_w = np.dot(self.x.T, error) / self.x.shape[0]
             dev_b = np.mean(error, axis=0)
             self.w = self.w - self.lr * dev_w
             self.b = self.b - self.lr * dev_b
-            if(eval == True): 
-                #self.train_acc.append(self.accuracy(self.x, self.y))
-                self.test_acc.append(self.accuracy(self.x_test, self.y_test))
