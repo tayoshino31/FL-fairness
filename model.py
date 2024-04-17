@@ -35,7 +35,7 @@ class MCLogisticRegression:
         score = np.equal(y_pred, y).sum() / x.shape[0]
         return score
     
-    def train(self, eval=False):
+    def train(self):
         for i in range(self.epochs):
             z = np.dot(self.x, self.w) + self.b
             y_prob = self.softmax(z)

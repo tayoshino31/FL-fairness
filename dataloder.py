@@ -50,49 +50,58 @@ class acsincom():
         data, _ = arff.loadarff('../dataset/ACSIncome/ACSIncome_state_number.arff')
         self.data = pd.DataFrame(data)
         self.statelist = np.unique(data['ST']).tolist()
-    
-    def get_data_by_client(self, state):   
-        if((state in self.statelist) == False):
-            print("Error: input state is invalid")
-            return 
-        state_data = self.data[self.data['ST'] == state]
-        state_data = state_data[0:(self.num_train + self.num_test)]
+        self.state_data_dict = dict()
+        self.global_data = None
         
-        #get sensitive varibles
-        race = state_data['RAC1P']
-        sex = state_data['SEX']
-
-        #process input  #'OCCP','POBP''RELP'
-        x = state_data.drop(['PINCP','ST'], axis=1) #should I drop state?
-        x = get_dummies(x)
-        #x = pd.get_dummies(state_data, 
-        #       columns=['COW', 'MAR','SCHL','SEX','RAC1P']).astype(int)
-        scaler = StandardScaler()
-        x = scaler.fit_transform(x)  
+        (global_x_train, global_x_test, global_y_train, global_y_test,
+         global_race_train, global_race_test, global_sex_train, global_sex_test) = [],[],[],[],[],[],[],[]
         
-        #get target
-        y = (state_data['PINCP'] > self.threshold).astype(int)
-        
-        #split train and test
-        x_train, x_test = x[:self.num_train],x[self.num_train:]
-        y_train, y_test = y[:self.num_train],y[self.num_train:]
-        race_train, race_test = race[:self.num_train],race[self.num_train:]
-        sex_train, sex_test = sex[:self.num_train],sex[self.num_train:]
-        return x_train, x_test, y_train, y_test, race_train, race_test, sex_train, sex_test
-
-
-    def get_data_global(self):
-        x_train, x_test, y_train, y_test, race_train, race_test, sex_train, sex_test = [],[],[],[],[],[],[],[]
         for state in self.statelist:
-            (st_x_train, st_x_test, st_y_train, st_y_test, 
-             st_race_train, st_race_test, st_sex_train, st_sex_test) = self.get_data_by_client(state)
-            x_train.extend(st_x_train.tolist())
-            x_test.extend(st_x_test.tolist())
-            y_train.extend(st_y_train)
-            y_test.extend(st_y_test)
-            race_train.extend(st_race_train)
-            race_test.extend(st_race_test)
-            sex_train.extend(st_sex_train)
-            sex_test.extend(st_sex_test)
-        return (np.array(x_train), np.array(x_test), np.array(y_train), np.array(y_test), 
-                np.array(race_train), np.array(race_test), np.array(sex_train), np.array(sex_test))
+            state_data = self.data[self.data['ST'] == state]
+            state_data = state_data[0:(self.num_train + self.num_test)]
+            
+            #get sensitive varibles
+            race = state_data['RAC1P']
+            sex = state_data['SEX']
+
+            #process input  #'OCCP','POBP''RELP'
+            x = state_data.drop(['PINCP','ST'], axis=1) #should I drop state?
+            x = get_dummies(x)
+            
+            #x = np.array(x.to_numpy() * 1.0)
+            #x = x.astype(float)
+            
+            scaler = StandardScaler()
+            x = scaler.fit_transform(x)  
+            
+            #get target
+            y = (state_data['PINCP'] > self.threshold).astype(int)
+            
+            #split train and test
+            x_train, x_test = x[:self.num_train],x[self.num_train:]
+            y_train, y_test = y[:self.num_train],y[self.num_train:]
+            race_train, race_test = race[:self.num_train],race[self.num_train:]
+            sex_train, sex_test = sex[:self.num_train],sex[self.num_train:]
+            state_data = [x_train, x_test, y_train, y_test, race_train, race_test, sex_train, sex_test]
+            self.state_data_dict[state] = state_data
+            
+            #global data
+            global_x_train.extend(x_train.tolist())
+            global_x_test.extend(x_test.tolist())
+            global_y_train.extend(y_train)
+            global_y_test.extend(y_test)
+            global_race_train.extend(race_train)
+            global_race_test.extend(race_test)
+            global_sex_train.extend(sex_train)
+            global_sex_test.extend(sex_test)
+            
+        self.global_data = (np.array(global_x_train), np.array(global_x_test), np.array(global_y_train), np.array(global_y_test),
+                    np.array(global_race_train), np.array(global_race_test), np.array(global_sex_train), np.array(global_sex_test))
+    
+    def get_data_by_client(self, state):  
+        return self.state_data_dict[state]
+       
+    def get_data_global(self):
+        return self.global_data
+    
+    
