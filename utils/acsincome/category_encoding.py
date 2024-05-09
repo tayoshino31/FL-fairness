@@ -1,3 +1,13 @@
+#ACSIncome category encoding.
+import pandas as pd
+
+def get_dummies(df):
+    for column, categories in ACSIncome_categories.items():
+        if column in df.columns:
+            df[column] = pd.Categorical(df[column], categories=categories.keys())
+    df_dummies = pd.get_dummies(df, prefix={col: col for col in df.columns if col in ACSIncome_categories})
+    return df_dummies
+
 ACSIncome_categories = {
     "COW": {
         1.0: (

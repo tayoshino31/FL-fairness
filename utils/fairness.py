@@ -12,9 +12,6 @@ def fairness(target_list, pred_list, pred_acc, s_list):
             ppr_list.append(np.mean(pred_list[converted_s == s_value]))
             tnr_list.append(np.mean(pred_acc[indexs0]))
             tpr_list.append(np.mean(pred_acc[indexs1]))
-        else:
-            #print("skipped s", s_value)
-            pass
     eo_gap = max(max(tnr_list) - min(tnr_list), max(tpr_list) - min(tpr_list))
     dp_gap = max(ppr_list) - min(ppr_list)
     return eo_gap, dp_gap
