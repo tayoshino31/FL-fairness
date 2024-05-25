@@ -1,6 +1,6 @@
 import numpy as np
 class LogisticRegression:
-    def __init__(self, epochs, n_features, lr = 0.1, n_class = 2, weight=None, intercept=None):
+    def __init__(self, epochs, n_features, lr = 0.3, n_class = 2, weight=None, intercept=None):
         self.n_classes = n_class
         self.lr = lr
         self.epochs = epochs        

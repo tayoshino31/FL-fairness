@@ -6,7 +6,7 @@ def fairness(target_list, pred_list, pred_acc, s_list):
     tpr_list = []
     converted_s = s_list  #s_list[:, 1]  # sex, 1 attribute
     for s_value in np.unique(converted_s):
-        if np.mean(converted_s == s_value) > 0.01: #0.01 - if the race is less than 1%, igore it.
+        if np.mean(converted_s == s_value) > 0: #0.01 - if the race is less than 1%, igore it.
             indexs0 = np.logical_and(target_list == 0, converted_s == s_value)
             indexs1 = np.logical_and(target_list == 1, converted_s == s_value)
             ppr_list.append(np.mean(pred_list[converted_s == s_value]))
