@@ -33,13 +33,16 @@ class Data_Generator():
             y_val = 1 if label[1] == '1' else 0
             local_data[label] = self.sample_xys(n, mean, std, y_val, s_val)
         return local_data
-                
+    
     def get_client(self):
+        return self.local_data
+                
+    def get_xys(self):
         a1 = self.local_data['A1']
         a0 = self.local_data['A0']
         b1 = self.local_data['B1']
         b0 = self.local_data['B0']
-        x = np.concatenate((a1['x'], a0['x'], b1['x'], b0['x']))
+        x = np.concatenate((a1['x'], a0['x'], b1['x'], b0['x'])).reshape(-1,1)
         y = np.concatenate((a1['y'], a0['y'], b1['y'], b0['y']))
         s = np.concatenate((a1['s'], a0['s'], b1['s'], b0['s']))
         return x, y, s

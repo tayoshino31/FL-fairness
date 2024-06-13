@@ -11,25 +11,27 @@ def get_xys(data):
     return np.array(x), np.array(y), np.array(s)
 
 
-def standalone(x, y , s, epochs): 
+def standalone(x, y , s, lr, epochs): 
     n_features = x.shape[1]
-    model = LogisticRegression(epochs=epochs, n_features=n_features)
+    model = LogisticRegression(epochs=epochs, n_features=n_features, lr=lr)
     model.train(x, y)
     y_pred = model.predict(x)
     pred_acc = (y_pred == y)
     acc = np.mean(pred_acc)
     s_eo, s_dp = fairness(y, y_pred, pred_acc, s)
     decision_boundary = - model.b/ model.w
-    return acc, s_eo, s_dp, decision_boundary
+    return acc, s_eo, s_dp, decision_boundary[0]
 
-def bruteforce(x, y, s, search_range, step):
+def bruteforce(x, y, s, search_range, step, warm_start = None):
     best_decision_boundary = 0
     best_acc = 0
-    base = search_range[0]
-    iteration = int((search_range[1] - search_range[0]) /step)
+    lower_range = warm_start - search_range
+    upper_range = warm_start + search_range
+    
+    iteration = int((upper_range - lower_range) /step)
     
     for i in range(iteration):
-        decision_boundary = base + step * i
+        decision_boundary = lower_range + step * i
         y_pred = [1 if value > decision_boundary else 0 for value in x]
         acc = np.mean((y_pred == y))
         if(best_acc < acc):
@@ -41,13 +43,13 @@ def bruteforce(x, y, s, search_range, step):
     s_eo, s_dp = fairness(y, y_pred, pred_acc, s)
     return best_acc, s_eo, s_dp, best_decision_boundary
 
-def centralized(global_data, epochs):
+def centralized(global_data, lr, epochs):
     x, y, s = get_xys(global_data)
     x = x.reshape(-1,1)
-    acc, s_eo, s_dp, decision_boundary = standalone(x, y, s, epochs)
+    acc, s_eo, s_dp, decision_boundary = standalone(x, y, s, lr, epochs)
     return acc, s_eo, s_dp, decision_boundary
 
-def fedavg(combined_data, global_data, epochs):
+def fedavg(combined_data, global_data, lr, epochs):
     fedavg_weight = None
     fedavg_bias = None
     fedavg_model = None
@@ -59,7 +61,7 @@ def fedavg(combined_data, global_data, epochs):
             x, y, s = get_xys(client)
             x = x.reshape(-1,1)
             n_features = x.shape[1]
-            model = LogisticRegression(epochs=1, n_features=n_features,weight=fedavg_weight, intercept=fedavg_bias)
+            model = LogisticRegression(epochs=1, n_features=n_features, lr=lr, weight=fedavg_weight, intercept=fedavg_bias)
             model.train(x,y)
             local_weights.append(model.w.tolist())
             local_biases.append(model.b.tolist())
@@ -74,4 +76,4 @@ def fedavg(combined_data, global_data, epochs):
     acc = np.mean(pred_acc)
     s_eo, s_dp = fairness(y, y_pred, pred_acc, s)
     decision_boundary = - model.b/ model.w
-    return acc, s_eo, s_dp, decision_boundary
+    return acc, s_eo, s_dp, decision_boundary[0]
