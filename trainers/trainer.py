@@ -49,7 +49,7 @@ def centralized(global_data, lr, epochs):
     acc, s_eo, s_dp, decision_boundary = standalone(x, y, s, lr, epochs)
     return acc, s_eo, s_dp, decision_boundary
 
-def fedavg(combined_data, global_data, lr, epochs):
+def fedavg(combined_data, global_data, lr, epochs, local_lrs, local_epochs):
     fedavg_weight = None
     fedavg_bias = None
     fedavg_model = None
@@ -57,11 +57,11 @@ def fedavg(combined_data, global_data, lr, epochs):
     for i in range(epochs):
         local_weights = []
         local_biases = []
-        for client in global_data: 
+        for idx, client in enumerate(global_data):
             x, y, s = get_xys(client)
             x = x.reshape(-1,1)
             n_features = x.shape[1]
-            model = LogisticRegression(epochs=1, n_features=n_features, lr=lr, weight=fedavg_weight, intercept=fedavg_bias)
+            model = LogisticRegression(epochs=int(local_epochs[idx]), n_features=n_features, lr=local_lrs[idx], weight=fedavg_weight, intercept=fedavg_bias)
             model.train(x,y)
             local_weights.append(model.w.tolist())
             local_biases.append(model.b.tolist())
@@ -77,3 +77,12 @@ def fedavg(combined_data, global_data, lr, epochs):
     s_eo, s_dp = fairness(y, y_pred, pred_acc, s)
     decision_boundary = - model.b/ model.w
     return acc, s_eo, s_dp, decision_boundary[0]
+
+def eval_local(local_data, decition_boundary):  
+    x, y, s = local_data
+    y_pred = x > decition_boundary
+    pred_acc = (y_pred == y)
+    acc = np.sum(pred_acc)/len(x)
+    s_eo, s_dp = fairness(y, y_pred, pred_acc, s)
+    return acc, s_eo, s_dp, decition_boundary
+    
