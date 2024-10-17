@@ -10,6 +10,14 @@ def get_xys(data):
         s.extend(data[group]['s'])  
     return np.array(x), np.array(y), np.array(s)
 
+def weighted_avg(num_samples, original_weight, original_bias):
+    weight = 0.0
+    bias = 0.0
+    total_samples = np.sum(num_samples)
+    for i in range(len(num_samples)):
+        weight += (num_samples[i]/total_samples) * original_weight[i]
+        bias += (num_samples[i]/total_samples) * original_bias[i]
+    return weight, bias
 
 def standalone(x, y , s, lr, epochs): 
     n_features = x.shape[1]
@@ -52,30 +60,37 @@ def centralized(global_data, lr, epochs):
 def fedavg(combined_data, global_data, lr, epochs, local_lrs, local_epochs):
     fedavg_weight = None
     fedavg_bias = None
-    fedavg_model = None
     #training
     for i in range(epochs):
         local_weights = []
         local_biases = []
+        num_samples = [] 
         for idx, client in enumerate(global_data):
             x, y, s = get_xys(client)
             x = x.reshape(-1,1)
-            n_features = x.shape[1]
-            model = LogisticRegression(epochs=int(local_epochs[idx]), n_features=n_features, lr=local_lrs[idx], weight=fedavg_weight, intercept=fedavg_bias)
+            n_features = x.shape[1]    
+            client_weight = np.copy(fedavg_weight)
+            client_bias = np.copy(fedavg_bias)
+            model = LogisticRegression(epochs=int(local_epochs[idx]), 
+                                       n_features=n_features, lr=local_lrs[idx],
+                                       weight=client_weight, intercept=client_bias, init_params=(i==0))
             model.train(x,y)
             local_weights.append(model.w.tolist())
             local_biases.append(model.b.tolist())
-            fedavg_model = model
-        fedavg_weight = np.array(local_weights).mean(axis=0)
-        fedavg_bias = np.array(local_biases).mean(axis=0)
+            num_samples.append(len(y))
+        fedavg_weight, fedavg_bias = weighted_avg(num_samples, np.array(local_weights), np.array(local_biases))
+        #fedavg_weight,fedavg_bias  = np.array(local_weights).mean(axis=0),np.array(local_biases).mean(axis=0)
+    
     #eval 
+    fedavg_model = LogisticRegression(epochs=int(local_epochs[idx]), n_features=n_features, 
+                                      lr=local_lrs[idx], weight=fedavg_weight, intercept=fedavg_bias)
     x, y, s = get_xys(combined_data)
     x = x.reshape(-1,1)
     y_pred = fedavg_model.predict(x)
     pred_acc = (y_pred == y)
     acc = np.mean(pred_acc)
     s_eo, s_dp = fairness(y, y_pred, pred_acc, s)
-    decision_boundary = - model.b/ model.w
+    decision_boundary = - fedavg_bias/ fedavg_weight
     return acc, s_eo, s_dp, decision_boundary[0]
 
 def eval_local(local_data, decition_boundary):  

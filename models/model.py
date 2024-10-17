@@ -1,9 +1,9 @@
 import numpy as np
 class LogisticRegression:
-    def __init__(self, epochs, n_features, lr = 0.3, weight=None, intercept=None):
+    def __init__(self, epochs, n_features, lr, weight=None, intercept=None, init_params=False):
         self.lr = lr
         self.epochs = epochs        
-        if weight is None or intercept is None:
+        if init_params:
             self.w  = np.zeros(n_features)
             self.b = 0
         else:
