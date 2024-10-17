@@ -83,7 +83,7 @@ def fedavg(combined_data, global_data, lr, epochs, local_lrs, local_epochs):
     
     #eval 
     fedavg_model = LogisticRegression(epochs=int(local_epochs[idx]), n_features=n_features, 
-                                      lr=local_lrs[idx], weight=fedavg_weight, intercept=fedavg_bias)
+                                      lr=local_lrs[idx], weight=fedavg_weight, intercept=fedavg_bias, init_params=False)
     x, y, s = get_xys(combined_data)
     x = x.reshape(-1,1)
     y_pred = fedavg_model.predict(x)
