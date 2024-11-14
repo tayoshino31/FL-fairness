@@ -7,7 +7,7 @@ from sklearn.preprocessing import StandardScaler
 import numpy as np
 from sklearn.model_selection import train_test_split
 from folktables import ACSDataSource, ACSIncome, generate_categories
-from utils.acsincome.category_encoding import ACSIncome_categories, STATE_LIST, get_dummies
+from category_encoding import ACSIncome_categories, STATE_LIST, get_dummies
     
 class acsincom():
     def __init__(self):
