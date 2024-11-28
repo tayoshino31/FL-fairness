@@ -3,7 +3,6 @@ from utils.fairness import fairness
 from models.model import LogisticRegression 
 from multiprocessing import Pool, cpu_count
 
-
 def get_xys(data):
     x, y, s = [], [], []
     for group in ['A0', 'A1', 'B0', 'B1']:
@@ -69,11 +68,11 @@ def centralized(global_data, lr, epochs):
     acc, s_eo, s_dp, decision_boundary = standalone(x, y, s, lr, epochs)
     return acc, s_eo, s_dp, decision_boundary
 
-def fedavg(combined_data, global_data, lr, epochs, local_lrs, local_epochs):
+def fedavg(combined_data, global_data, rounds, local_lrs, local_epochs):
     fedavg_weight = None
     fedavg_bias = None
     #training
-    for i in range(epochs):
+    for i in range(rounds):
         local_weights = []
         local_biases = []
         num_samples = [] 

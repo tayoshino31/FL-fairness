@@ -21,21 +21,12 @@ class LogisticRegression:
         score = np.equal(y_pred, y).sum() / x.shape[0]
         return score
         
-    def train(self, x, y, batch_size = 64):
-        for i in range(0, len(x), batch_size):
-            #SGD optimization
-            indices = np.random.permutation(len(x))
-            x_shuffled = x[indices]
-            y_shuffled = y[indices]
-            for i in range(0, len(x), batch_size):
-                #Get mini-batch
-                x_batch = x_shuffled[i:i+batch_size]
-                y_batch = y_shuffled[i:i+batch_size]
-
-                z = np.dot(x_batch, self.w) + self.b
-                y_prob = 1 /(1 + np.exp(-z))
-                error = y_prob - y_batch
-                dev_w = np.dot(x_batch.T, error) / x_batch.shape[0]
-                dev_b = np.mean(error, axis=0)
-                self.w -= self.lr * dev_w
-                self.b -= self.lr * dev_b
+    def train(self, x, y):
+        for i in range(self.epochs):
+            z = np.dot(x, self.w) + self.b
+            y_prob = 1 /(1 + np.exp(-z))
+            error = y_prob - y
+            dev_w = np.dot(x.T, error) / x.shape[0]
+            dev_b = np.mean(error, axis=0)
+            self.w -= self.lr * dev_w
+            self.b -= self.lr * dev_b
