@@ -104,7 +104,7 @@ def fedavg(combined_data, global_data, lr, epochs, local_lrs, local_epochs):
     s_eo, s_dp = fairness(y, y_pred, pred_acc, s)
     decision_boundary = - fedavg_bias/ fedavg_weight
     return acc, s_eo, s_dp, decision_boundary[0]
-
+    
 def eval_local(local_data, decition_boundary):  
     x, y, s = local_data
     y_pred = x > decition_boundary
@@ -112,4 +112,3 @@ def eval_local(local_data, decition_boundary):
     acc = np.sum(pred_acc)/len(x)
     s_eo, s_dp = fairness(y, y_pred, pred_acc, s)
     return acc, s_eo, s_dp, decition_boundary
-    
