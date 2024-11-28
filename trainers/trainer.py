@@ -1,6 +1,8 @@
 import numpy as np
 from utils.fairness import fairness
 from models.model import LogisticRegression 
+from multiprocessing import Pool, cpu_count
+
 
 def get_xys(data):
     x, y, s = [], [], []
@@ -30,21 +32,31 @@ def standalone(x, y , s, lr, epochs):
     decision_boundary = - model.b/ model.w
     return acc, s_eo, s_dp, decision_boundary[0]
 
+
+def compute_acc(args):
+    decision_boundary, x, y = args
+    y_pred = [1 if value > decision_boundary else 0 for value in x]
+    acc = np.mean((y_pred == y))
+    return acc, decision_boundary
+
 def bruteforce(x, y, s, search_range, step, warm_start = None):
     best_decision_boundary = 0
     best_acc = 0
     lower_range = warm_start - search_range
     upper_range = warm_start + search_range
-    
-    iteration = int((upper_range - lower_range) /step)
-    
-    for i in range(iteration):
-        decision_boundary = lower_range + step * i
-        y_pred = [1 if value > decision_boundary else 0 for value in x]
-        acc = np.mean((y_pred == y))
-        if(best_acc < acc):
-            best_decision_boundary = decision_boundary
-            best_acc = acc
+    decision_boundaries = np.arange(lower_range, upper_range, step)
+    args_list = [(db, x, y) for db in decision_boundaries]
+
+    # Use multiprocessing Pool
+    with Pool(processes=cpu_count()) as pool:
+        results = pool.map(compute_acc, args_list)
+    accuracies, boundaries = zip(*results)
+
+    # Find the best decision boundary
+    best_idx = np.argmax(accuracies)
+    best_decision_boundary = boundaries[best_idx]
+    best_acc = accuracies[best_idx]
+
     #compute fairness 
     y_pred = np.array([1 if value > best_decision_boundary else 0 for value in x])
     pred_acc = (y_pred == y)
@@ -92,7 +104,7 @@ def fedavg(combined_data, global_data, lr, epochs, local_lrs, local_epochs):
     s_eo, s_dp = fairness(y, y_pred, pred_acc, s)
     decision_boundary = - fedavg_bias/ fedavg_weight
     return acc, s_eo, s_dp, decision_boundary[0]
-
+    
 def eval_local(local_data, decition_boundary):  
     x, y, s = local_data
     y_pred = x > decition_boundary
@@ -100,4 +112,3 @@ def eval_local(local_data, decition_boundary):
     acc = np.sum(pred_acc)/len(x)
     s_eo, s_dp = fairness(y, y_pred, pred_acc, s)
     return acc, s_eo, s_dp, decition_boundary
-    

@@ -1,3 +1,5 @@
 __pycache__
 dataset
 .DS_Store
+logs/
+experiments.py
