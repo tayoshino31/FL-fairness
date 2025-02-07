@@ -325,7 +325,7 @@ class BFAnalyzer:
         
     def draw_global(self, gbf_result, data, bf_local, gbf_local):
         clear_output(wait=True) 
-        fig, ax = plt.subplots(figsize=(16, 6))
+        fig, ax = plt.subplots(figsize=(16, 4))
         plt.title('Global Data')
         props = dict(boxstyle='round', facecolor='white', alpha=0.5)
         

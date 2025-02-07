@@ -1,9 +1,9 @@
 sliders_config:
   N: 
-    min: 10000
-    max: 100000
-    step: 10000
-    value: 50000
+    min: 100
+    max: 10000
+    step: 10
+    value: 1000
     description: "N"
   n_a:
     min: 0.1
